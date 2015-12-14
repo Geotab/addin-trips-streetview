@@ -1,0 +1,388 @@
+input{
+    display: inline-block;
+    float: none;
+    width: auto;
+    vertical-align: middle;
+}
+
+.geotabPageNameSecondary {
+    -webkit-box-flex: 1 0 auto;
+    -webkit-flex: 1 0 auto;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
+}
+h3.pageTotalHeading {
+    font-size: 1.6em;
+}
+.listBuilder {
+    clear: both;
+}
+.pageTotalHeading {
+    float: right;
+    text-align: right;
+    color: #888;
+    font-weight: normal;
+    min-width: 30px;
+    -webkit-box-flex: 1 0 auto;
+    -webkit-flex: 1 0 auto;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
+    margin-right: 10px;
+}
+
+.toolbar {
+    background: #fefefe;
+    padding: 6px 0 8px 0;
+    border: none;
+    float: left;
+    clear: both;
+    border-bottom: 1px #ddd solid;
+    width: 100%;
+    margin: 0;
+}
+.rightGeotabIcon .geotabButtonIcons {
+    position: absolute;
+    top: 0.5em;
+}
+
+.clearfix {
+    clear: both;
+}
+
+.waiting {
+    z-index: 9999;
+}
+.dialog {
+    z-index: 10000;
+}
+.fader {
+    background-color: #000;
+    opacity: 0.1;
+    width: 100%;
+    height: 100%;
+}
+@-webkit-keyframes spinner { from {-webkit-transform: rotate(0deg);} to {-webkit-transform: rotate(-360deg);}}
+@keyframes spinner { from { -webkit-transform: rotate(0deg); transform: rotate(0deg);} to { -webkit-transform: rotate(-360deg); transform: rotate(-360deg);}}
+/* :not(:required) hides this rule from IE9 and below */
+.spinner:not(:required) {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -20px 0 0 -20px;
+    width: 40px;
+    height: 40px;
+    opacity: 0.5;
+    background: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20height%3D%2229%22%20width%3D%2228%22%3E%3Cg%20style%3D%22stroke%3A%23000%3Bstroke-width%3A4%3Bstroke-linecap%3Around%3B%22%20transform%3D%22matrix(.703%200%200%20.703%2014.156%2014.156)%22%3E%3Cline%20y1%3D%2211%22%20y2%3D%2218%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(30)%22%20y1%3D%2211%22%20opacity%3D%22.917%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(60)%22%20y1%3D%2211%22%20opacity%3D%22.835%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(90)%22%20y1%3D%2211%22%20opacity%3D%22.752%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(120)%22%20y1%3D%2211%22%20opacity%3D%22.669%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(150)%22%20y1%3D%2211%22%20opacity%3D%22.587%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(180)%22%20y1%3D%2211%22%20opacity%3D%22.504%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(210)%22%20y1%3D%2211%22%20opacity%3D%22.421%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(240)%22%20y1%3D%2211%22%20opacity%3D%22.339%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(270)%22%20y1%3D%2211%22%20opacity%3D%22.256%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(300)%22%20y1%3D%2211%22%20opacity%3D%22.174%22%2F%3E%3Cline%20y2%3D%2218%22%20transform%3D%22rotate(330)%22%20y1%3D%2211%22%20opacity%3D%22.091%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E") center no-repeat;
+    background-size: 40px;
+    min-height: 20px;
+    -webkit-animation: spinner 0.8s linear infinite;
+    animation: spinner 0.8s linear infinite;
+}
+
+#tripPlayToolbar select {
+    width: 200px;
+}
+
+select#tripPlay_tripsFilter {
+    width: 350px;
+}
+.custom-select label {
+    display: block;
+    font-size: 14px;
+    border: 1px solid #969696;
+    padding: 5px;
+    border-radius: 7px;
+    margin: 5px 0;
+}
+.custom-select li {
+}
+.custom-select li.active label, .custom-select li:hover label {
+    box-shadow: 0 0 2px 1px #ADADAD;
+    background-color: #D8D8D8;
+    cursor: pointer;
+}
+
+.custom-select.tripPlay_trip-select input[type=radio],
+.custom-select.tripPlay_devices-select input[type=checkbox]{
+    display: block;
+    visibility: hidden;
+    position: absolute;
+}
+.custom-select.tripPlay_trip-select .address {
+    display: block;
+    border-bottom: 1px solid #000;
+    padding-bottom: 5px;
+}
+.custom-select.tripPlay_trip-select .time {
+    display: block;
+    padding-top: 5px;
+}
+
+div.pq-select-button {
+    vertical-align: middle;
+    border: 1px #ddd solid;
+    padding: 5px;
+    margin: 0 3px 0 0;
+    border: 1px solid #c5dbec;
+    background-color: #fefefe;
+    color: #222;
+    -webkit-border-radius: 0.4em;
+    -moz-border-radius: 0.4em;
+    border-radius: 0.4em;
+    padding: 0.3em;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/*
+ *  Custom styles for addin.
+ *  To avoid conflicts with common HTML elements such as h1, span, strong, etc
+ *  it is recommended that you prefix your own elements with "addinName" where
+ *  "addinName" is your own unique name to create your own CSS name space.
+ */
+#tripPlay_body{
+    width: 100%;
+    height: auto;
+    position: relative;
+    min-width: 400px;
+    min-height: 400px;
+}
+
+#tripPlay_pano{
+    width: 100%;
+    margin: 0 auto;
+}
+
+#tripPlay_mapWindow {
+    display: none;
+}
+
+#tripPlay_map{
+    height: 300px;
+    width: 300px;
+    min-width: 300px;
+    min-height: 300px;
+}
+
+.gm-style > div:nth-child(9){
+    display:none;
+}
+
+.tripPlay_window.collapsed #tripPlay_map {
+    height: 0 !important;
+    min-height: 0 !important;
+}
+
+.tripPlay_window{
+    width: auto;
+    position: absolute;
+    height: auto;
+    background: rgb(203, 203, 203);
+    background: rgba(26, 26, 26, 0.14);
+    -webkit-box-shadow: 0px 0px 7px -1px rgb(64, 118, 147);
+    -moz-box-shadow: 0px 0px 7px -1px rgb(64, 118, 147);
+    box-shadow: 0px 0px 7px -1px rgb(64, 118, 147);
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    z-index: 1;
+}
+
+#tripPlay_mapWindow{
+    margin: 10px;
+    z-index: 2;
+}
+
+.tripPlay_window .tripPlay_head{
+    height: 35px;
+    line-height: 35px;
+    background: rgb(199, 199, 199);
+    background: rgba(155, 154, 154, 0.38);
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 0px 1px 1px 0px rgb(158, 170, 176);
+    -moz-box-shadow: 0px 1px 1px 0px rgb(158, 170, 176);
+    box-shadow: 0px 1px 1px 0px rgb(158, 170, 176);
+}
+.tripPlay_window .tripPlay_head .tripPlay_text{
+    margin: 0px 8px;
+    font-size: 18px;
+    color: rgb(253, 253, 253);
+}
+.tripPlay_window .tripPlay_head .tripPlay_event{
+    margin: 0px 4px;
+    font-size: 22px;
+    color: rgb(253, 253, 253);
+    border: 1px solid rgb(205, 205, 205);
+    position: relative;
+    float: right;
+    width: 35px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none;
+    cursor: pointer;
+    text-align: center;
+    line-height: 32px;
+
+    height: 33px;
+}
+.tripPlay_window .tripPlay_head .tripPlay_event:active{
+    -webkit-box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+    -moz-box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+    box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+}
+.tripPlay_window .tripPlay_body{
+    margin: 4px;
+    width: auto;
+    height: 100%;
+}
+.tripPlay_window.collapsed .tripPlay_body{
+    margin: 0 4px;
+}
+
+.tripPlay_button{
+    background-color: #f4f4f4;
+    background-image: -moz-linear-gradient(top,#fdfdfd,#e6e6e6);
+    background-image: -webkit-gradient(linear,0 0,0 100%,from(#fdfdfd),to(#e6e6e6));
+    background-image: -webkit-linear-gradient(top,#fdfdfd,#e6e6e6);
+    background-image: -o-linear-gradient(top,#fdfdfd,#e6e6e6);
+    background-image: linear-gradient(to bottom,#fdfdfd,#e6e6e6);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fffdfdfd',endColorstr='#ffe6e6e6',GradientType=0);
+    color: #444;
+    border: 1px #ddd solid !important;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    outline: none;
+    border-radius: 3px;
+    text-decoration: none!important;
+    display: inline-block;
+    position: relative;
+    padding: 6px 11px;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    min-height: 2.5em;
+    margin: 0px 0px 0px 11px;
+}
+.tripPlay_button:active{
+    background-color: #ededed;
+    background-image: -moz-linear-gradient(top,#ebebeb,#f0f0f0);
+    background-image: -webkit-gradient(linear,0 0,0 100%,from(#ebebeb),to(#f0f0f0));
+    background-image: -webkit-linear-gradient(top,#ebebeb,#f0f0f0);
+    background-image: -o-linear-gradient(top,#ebebeb,#f0f0f0);
+    background-image: linear-gradient(to bottom,#ebebeb,#f0f0f0);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffebebeb',endColorstr='#fff0f0f0',GradientType=0);
+    -webkit-box-shadow: 0 1px 1px 0 rgba(0,0,0,0.3) inset;
+    -moz-box-shadow: 0 1px 1px 0 rgba(0,0,0,0.3) inset;
+    box-shadow: 0 1px 1px 0 rgba(0,0,0,0.3) inset;
+    color: #444;
+}
+
+.tripPlay_title{
+    display: inline-block;
+    color: #25477b;
+}
+
+#tripPlay_loadingWindow, #tripPlay_controlsWindow{
+    width: 100%;
+    bottom: 0px;
+}
+#tripPlay_loadingWindow .tripPlay_head{
+    width: 100%;
+    text-align: center;
+}
+#tripPlay_loadingWindow .tripPlay_loadingProgress{
+    height: 35px;
+    width: 1%;
+    background: rgba(73, 105, 243, 0.6);
+    -webkit-transition: all 2s ease;
+    -moz-transition: all 2s ease;
+    -o-transition: all 2s ease;
+    transition: all 2s ease;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+#tripPlay_controlsWindow{
+    /*display: block !important;*/
+    opacity: 1;
+    bottom: 0px;
+    background: rgba(255, 0, 0, 0);
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    background: rgba(0, 0, 0, 0.3);
+}
+#tripPlay_controlsWindow:hover{
+    opacity: 1;
+}
+#tripPlay_controls .tripPlay_controlButton{
+    text-align: center;
+    font-size: 19px;
+    padding: 10px;
+    margin: 0px;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    background: rgb(199, 199, 199);
+    background: rgba(155, 154, 154, 0.7);
+    color: rgb(253, 253, 253);
+    border: 1px solid rgb(205, 205, 205);
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none;
+}
+#tripPlay_controls .tripPlay_controlButton:active{
+    webkit-box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+    -moz-box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+    box-shadow: 0px 0px 3px 1px rgb(179, 173, 173) inset;
+}
+#controlPlay,
+#controlPause,
+#controlStop{
+    height: 100%;
+    width: 76px;
+}
+#tripPlay_controls{
+    height: 60px;
+    width: auto;
+    text-align: center;
+    position: relative;
+}
+
+.es-popup {
+    z-index: 9000;
+}
+
+.tripPlay_date-picker {
+    font-size: 14px;
+}
+.comiseo-daterangepicker-presets, .comiseo-daterangepicker-calendar {
+    height: 210px;
+}
+.comiseo-daterangepicker-triggerbutton.ui-button {
+    min-width: 280px;
+}
+.comiseo-daterangepicker-calendar > .ui-datepicker-inline {
+    width: 210px;
+}
+.comiseo-daterangepicker-calendar .ui-datepicker-title {
+    font-size: 1em;
+    font-weight: normal;
+}
+.comiseo-daterangepicker-buttonpanel button:nth-child(2) {
+    display: none;
+}
+.comiseo-daterangepicker-presets li a {
+    text-decoration: none;
+}

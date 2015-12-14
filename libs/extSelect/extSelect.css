@@ -1,0 +1,102 @@
+.extSelect {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+}
+.es-selection-container {
+    display: block;
+    height: 26px;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid #aaa;
+    text-align: left;
+    white-space: nowrap;
+    line-height: 26px;
+    color: #444;
+    text-decoration: none;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    background-color: #fff;
+}
+.es-selection-text {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    padding-left: 8px;
+}
+.es-selection-text.placeholder {
+    color: #999;
+}
+.es-selection-arrow {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 25px;
+    background: url('multiple-select.png') right top no-repeat;
+}
+.es-selection-arrow.opened {
+    background-position: left top;
+}
+.es-popup {
+    z-index: 99;
+    background: #fff;
+    overflow: hidden;
+    border: 1px solid #aaa;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 4px 5px rgba(0, 0, 0, .15);
+    -moz-box-shadow: 0 4px 5px rgba(0, 0, 0, .15);
+    box-shadow: 0 4px 5px rgba(0, 0, 0, .15);
+}
+.es-popup.closed {
+    display: none;
+}
+.es-filter-container {
+    padding: 5px;
+}
+.es-filter {
+    width: 100%;
+    height: auto !important;
+    min-height: 24px;
+    padding: 0 20px 0 5px;
+    box-sizing: border-box;
+    margin: 0;
+    outline: 0;
+    font-family: sans-serif;
+    font-size: 1em;
+    border: 1px solid #aaa;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    background: #fff url('multiple-select.png') no-repeat 100% -22px;
+    background: url('multiple-select.png') no-repeat 100% -22px, -webkit-gradient(linear, left bottom, left top, color-stop(0.85, white), color-stop(0.99, #eeeeee));
+    background: url('multiple-select.png') no-repeat 100% -22px, -webkit-linear-gradient(center bottom, white 85%, #eeeeee 99%);
+    background: url('multiple-select.png') no-repeat 100% -22px, -moz-linear-gradient(center bottom, white 85%, #eeeeee 99%);
+    background: url('multiple-select.png') no-repeat 100% -22px, -o-linear-gradient(bottom, white 85%, #eeeeee 99%);
+    background: url('multiple-select.png') no-repeat 100% -22px, -ms-linear-gradient(top, #ffffff 85%, #eeeeee 99%);
+    background: url('multiple-select.png') no-repeat 100% -22px, linear-gradient(top, #ffffff 85%, #eeeeee 99%);
+}
+.es-options-container {
+    margin: 10px 0 5px 0;
+    padding: 0 5px;
+    overflow: auto;
+}
+.extSelect li {
+    list-style: none;
+    position: relative;
+}
+.extSelect.disabled .es-selection-container {
+    background: #EAEAEA;
+}
