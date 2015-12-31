@@ -1,18 +1,14 @@
 {
-    "supportEmail": "support@example.com",
-    "isSigned": false,
-    "signature": "12345-MYSIGNATURE",
-    "name": "Trips Street View (by Geotab)",
+    "name": "Trips Street View",
+    "supportEmail": "support@geotab.com",
+    "version": "1.0",
     "items": [
         {
-            "icon": "https://cdn.rawgit.com/Geotab/addin-trips-streetview/master/images/icon.svg",
             "path": "ActivityLink/",
             "menuName": {
                 "en": "Trips Street View"
             },
-            "url": "https://cdn.rawgit.com/Geotab/addin-trips-streetview/master/tripsStreetView.html"
+            "url": "tripsStreetView.html"
         }
-    ],
-    "version": "1.0",
-    "key": "12345-MYAPIKEY"
+    ]
 }

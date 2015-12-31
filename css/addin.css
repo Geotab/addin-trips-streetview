@@ -103,6 +103,7 @@ select#tripPlay_tripsFilter {
 }
 
 .custom-select.tripPlay_trip-select input[type=radio],
+.custom-select.tripPlay_devices-select input[type=radio],
 .custom-select.tripPlay_devices-select input[type=checkbox]{
     display: block;
     visibility: hidden;
@@ -151,6 +152,9 @@ div.pq-select-button {
 #tripPlay_pano{
     width: 100%;
     margin: 0 auto;
+    font-size: 24px;
+    line-height: 40px;
+    text-align: center;
 }
 
 #tripPlay_mapWindow {

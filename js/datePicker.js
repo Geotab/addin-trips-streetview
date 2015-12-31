@@ -6,6 +6,14 @@ tripPlayAddin.datePicker = function() {
     var container,
         init = function(cont, callback) {
             var options = {
+                    presetRanges: [
+                        {text: 'Today', dateStart: function() { return moment(); }, dateEnd: function() { return moment(); } },
+                        {text: 'Yesterday', dateStart: function() { return moment().subtract('days', 1); }, dateEnd: function() { return moment().subtract('days', 1); } },
+                        {text: 'Last 7 Days', dateStart: function() { return moment().subtract('days', 6); }, dateEnd: function() { return moment(); } },
+                        {text: 'Last Week (Mo-Su)', dateStart: function() { return moment().subtract('days', 7).isoWeekday(1); }, dateEnd: function() { return moment().subtract('days', 7).isoWeekday(7); } },
+                        {text: 'Month to Date', dateStart: function() { return moment().startOf('month'); }, dateEnd: function() { return moment(); } },
+                        {text: 'Previous Month', dateStart: function() { return moment().subtract('month', 1).startOf('month'); }, dateEnd: function() { return moment().subtract('month', 1).endOf('month'); } }
+                    ],
                     datepickerOptions: {
                         numberOfMonths: 1
                     }
@@ -15,10 +23,10 @@ tripPlayAddin.datePicker = function() {
                     end: moment(new Date()).endOf("day").toDate()
                 };
             container = cont;
-            $(cont).daterangepicker(options);
-            $(cont).daterangepicker("setRange", initState);
-            $(cont).daterangepicker({onChange: function(){
-                callback($(cont).daterangepicker("getRange"));
+            jQuery(cont).daterangepicker(options);
+            jQuery(cont).daterangepicker("setRange", initState);
+            jQuery(cont).daterangepicker({onChange: function(){
+                callback(jQuery(cont).daterangepicker("getRange"));
             }});
         };
     return {
@@ -33,10 +41,10 @@ tripPlayAddin.datePicker = function() {
                     end: (state.end) ? new Date(state.end) : new Date()
                 };
             }
-            $(container).daterangepicker("setRange", state);
+            jQuery(container).daterangepicker("setRange", state);
         },
         getState: function(serialized){
-            var value = $(container).daterangepicker("getRange"),
+            var value = jQuery(container).daterangepicker("getRange"),
                 res = {
                     start: moment(value.start).startOf("day").toDate(),
                     end: moment(value.end).endOf("day").toDate()
@@ -47,7 +55,7 @@ tripPlayAddin.datePicker = function() {
             };
         },
         unload: function(){
-            $(container).daterangepicker("destroy");
+            jQuery(container).daterangepicker("destroy");
         }
     };
 };

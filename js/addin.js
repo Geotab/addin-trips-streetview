@@ -12,25 +12,41 @@ geotab.addin.tripPlay = function(api, state) {
             devices: []
         },
         defaultDevicesList = {},
+        prevHistoryState,
         config = {
-            devicesLimit: 100
+            devicesLimit: 100,
+            debug: false
         },
         currTrip,
         tripsList = {},
+        devicesRequest,
+        tripsRequest,
         initialize = function() {
-            optionsToolbar.init(applyOptions);
+            //optionsToolbar.init(applyOptions);
         },
-        loadDevicesContent = function(filter) {
-            var waiting = tripPlayAddin.waiting(),
+        loadDevicesContent = function(filter, showHistory) {
+            var waitingDevices = tripPlayAddin.waiting(),
+                waitingTrip = tripPlayAddin.waiting(),
+                selectedOptions = optionsToolbar.getOptions(),
                 hasFilter = typeof filter === "string";
 
-            if(!hasFilter && Object.keys(defaultDevicesList).length) {
+            if(!hasFilter && prevHistoryState === showHistory && Object.keys(defaultDevicesList).length) {
                 optionsToolbar.setDevices(defaultDevicesList);
                 applyOptions(optionsToolbar.getOptions(), true);
                 return false;
             }
-            waiting.start(document.querySelector(".tripPlay_trip-select .es-popup"));
-            getDevices(filter).then(function(devices){
+            if(devicesRequest) {
+                devicesRequest.cancel();
+            }
+            waitingDevices.start(document.querySelector(".tripPlay_devices-select .es-popup"));
+            waitingTrip.start(document.querySelector(".tripPlay_trip-select .es-popup"));
+            devicesRequest = getDevicesByIds(selectedOptions.devices).cancellable().then(function(selectedDevices){
+                optionsToolbar.setDefaultData({
+                    devices: selectedDevices
+                });
+                optionsToolbar.setSelected(selectedOptions);
+                return getDevices(filter, showHistory);
+            }).then(function(devices){
                 var devicesList = {};
                 if (devices) {
                     if (devices.length) {
@@ -41,13 +57,18 @@ geotab.addin.tripPlay = function(api, state) {
                     if(!hasFilter) {
                         defaultDevicesList = devicesList;
                     }
-                    optionsToolbar.setDevices(devicesList);
+                    optionsToolbar.setDevices(devicesList, prevHistoryState !== showHistory);
                     if(!hasFilter) {
                         applyOptions(optionsToolbar.getOptions(), true);
                     }
+                    prevHistoryState = showHistory;
                 }
-            }).finally(waiting.stop);
+            }).catch(showError).finally(function(){
+                waitingDevices.stop();
+                waitingTrip.stop();
+            });
         },
+        /*
         getSelectedDevices = function(devices) {
             var waiting = tripPlayAddin.waiting();
             waiting.start(document.querySelector("#checkmateContent"));
@@ -73,11 +94,14 @@ geotab.addin.tripPlay = function(api, state) {
                 });
             }).catch(showError).finally(waiting.stop);
         },
+        */
         loadTripsContent = function(devices, fromDate, toDate) {
             var task,
                 availTrips = [],
                 waiting = tripPlayAddin.waiting(),
                 changedTrips,
+                isTripSelectOpen = !!document.querySelectorAll(".tripPlay_trip-select .es-popup.opened").length,
+                tripWaitingSelector = (isTripSelectOpen) ? ".tripPlay_trip-select .es-popup" : ".tripPlay_trip-select .es-selection-container",
                 setTripData = function(trips){
                     var prevTripNotExisted = true;
                     Object.keys(trips).forEach(function(tripId){
@@ -108,10 +132,13 @@ geotab.addin.tripPlay = function(api, state) {
                 return false;
             }
 
-            waiting.start(document.querySelector(".tripPlay_trip-select .es-popup"));
-            task = getTrips(fromDate, toDate, changedTrips.addDevices).then(function(trips){
-                if(trips && !trips.length && task) {
-                    task.cancel();
+            if(tripsRequest) {
+                tripsRequest.cancel();
+            }
+            waiting.start(document.querySelector(tripWaitingSelector));
+            tripsRequest = getTrips(fromDate, toDate, changedTrips.addDevices).cancellable().then(function(trips){
+                if(!trips && tripsRequest) {
+                    tripsRequest.cancel();
                 }
                 availTrips = trips.reduce(function(availTrips, trip) {
                     if(devices.indexOf(trip.device.id) > -1) {
@@ -130,7 +157,7 @@ geotab.addin.tripPlay = function(api, state) {
                     tripsList[tripData.id] = tripData;
                 });
                 setTripData(tripsList);
-            }).finally(waiting.stop);
+            }).catch(showError).finally(waiting.stop);
         },
         getChangedTrips = function(devices, fromDate, toDate, prevTrips, prevSearchParams) {
             var res = {
@@ -169,11 +196,12 @@ geotab.addin.tripPlay = function(api, state) {
                 return trip.stopPoint;
             });
         },
-        getDevices = function(filter) {
+        getDevices = function(filter, showHistory) {
             var request = {
                 typeName: "Device",
                 search: {
-                    groups: state.getGroupFilter()
+                    groups: state.getGroupFilter(),
+                    fromDate: (!showHistory) ? new Date() : null
                 },
                 resultsLimit: config.devicesLimit
             };
@@ -181,8 +209,7 @@ geotab.addin.tripPlay = function(api, state) {
                 request.search.name = "%" + filter.toLowerCase() + "%";
             }
             return new Promise(function(resolve, reject){
-                api.call("Get", request, resolve, reject
-                );
+                api.call("Get", request, resolve, reject);
             });
         },
         getDevicesByIds = function(devicesIds) {
@@ -196,8 +223,11 @@ geotab.addin.tripPlay = function(api, state) {
                     }];
                 });
             return new Promise(function(resolve, reject){
-                api.multiCall(task, resolve, reject
-                );
+                if(devicesIds.length) {
+                    api.multiCall(task, resolve, reject);
+                } else {
+                    resolve([]);
+                }
             });
         },
         getTrips = function(fromDate, toDate, devices) {
@@ -277,7 +307,7 @@ geotab.addin.tripPlay = function(api, state) {
             var tripData = {},
                 tripLogs = [],
                 waiting = tripPlayAddin.waiting();
-            waiting.start();
+            waiting.start(document.querySelector("#checkmateContent"));
             getTripById(tripId)
                 .then(function(trip) {
                     tripData = trip[0] || trip;
@@ -301,21 +331,24 @@ geotab.addin.tripPlay = function(api, state) {
                 return false;
             }
 
-            if(typeof options.devicesFilter === "string") {
-                loadDevicesContent(options.devicesFilter, true);
+            if(prevHistoryState !== options.showHistory || typeof options.devicesFilter === "string") {
+                loadDevicesContent(options.devicesFilter, options.showHistory);
+                prevHistoryState = options.showHistory;
                 return false;
             }
 
-            // We need to remove current state before setting new state (setState method ussues)
+            // We need to remove current state before setting new state (setState method issues)
             state.setState({
                 datePicker: null,
                 devices: null,
+                showHistory: null,
                 trips: null
             });
 
             state.setState({
                 datePicker: options.datePicker,
                 devices: options.devices,
+                showHistory: options.showHistory,
                 trips: options.trips
             });
 
@@ -338,7 +371,9 @@ geotab.addin.tripPlay = function(api, state) {
             }
         },
         showError = function(e) {
-            console.error(e);
+            if(config.debug) {
+                console.error(e);
+            }
         };
 
     return {
@@ -351,14 +386,18 @@ geotab.addin.tripPlay = function(api, state) {
         },
         focus: function(api, state) {
             var options = state.getState();
+            optionsToolbar.init(applyOptions);
             optionsToolbar.setOptions(options);
+            /*
             if(options.devices && options.devices.length) {
-                getSelectedDevices(options.devices);
-            }
+                getSelectedDevices(options.devices, options.showHistory);
+            }*/
+            /*
             if(options.trips && options.trips.length) {
                 getSelectedTrip(options.trips);
             }
-            loadDevicesContent();
+            */
+            loadDevicesContent(options.devicesFilter, options.showHistory);
         },
         blur: function() {
             player.unload();

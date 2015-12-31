@@ -87,6 +87,7 @@
             $selectArrow,
             $popup,
             $filter,
+            currFilter,
             $optionsContainer,
             $container,
             $wrapper,
@@ -219,7 +220,10 @@
             },
             setSelectionText = function() {
                 var text,
-                    selectedQty = Object.keys(selectedData).length;
+                    selectedQty = Object.keys(selectedData).length,
+                    fullText = Object.keys(selectedData).map(function(id){
+                        return selectedData[id];
+                    }).join(", ");
 
                 if($selectAll) {
                     setOptionState($selectAll, selectedQty === $options.length);
@@ -229,15 +233,12 @@
                     text = settings.placeholder;
                     addClass($selectText, "placeholder");
                 } else if(selectedQty < 4) {
-                    text = Object.keys(selectedData).map(function(id){
-                        return selectedData[id];
-                    }).join(", ");
-                } else if(selectedQty < $options.length){
-                    text = selectedQty + " items selected";
+                    text = fullText;
                 } else {
-                    text = "All selected";
+                    text = selectedQty + " items selected";
                 }
                 $selectText.textContent = text;
+                $select.title = fullText;
             },
             setSettings = function(newSettings){
                 var settingName;
@@ -351,8 +352,15 @@
             checkFilter = function(label) {
                 return label.toUpperCase().indexOf(getFilter().toUpperCase()) > -1;
             },
-            filterListener = function(){
+            filterListener = function(e){
+                if(e) {
+                    e.stopPropagation();
+                }
                 var value = getFilter();
+                if(currFilter === value) {
+                    return false;
+                }
+                currFilter = value;
                 if(fireEvent("onBeforeFilter", [value])) {
                     applyFilter(value);
                     fireEvent("onFilter", [getSelected()]);

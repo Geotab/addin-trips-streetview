@@ -4,6 +4,7 @@ tripPlayAddin.optionsToolbar = (function() {
     "use strict";
 
     var devicesSelect,
+        historyDevicesButton,
         datePicker,
         tripsSelect,
         currentData = {},// current data
@@ -13,6 +14,7 @@ tripPlayAddin.optionsToolbar = (function() {
             var container = document.querySelector(".tripPlay_devices-select");
             return ExtSelect(container, {
                 width: 250,
+                multiple: false,
                 selectAll: false,
                 popupHeight: 400,
                 onClose: function(isClickedOutside){
@@ -28,7 +30,8 @@ tripPlayAddin.optionsToolbar = (function() {
                 onClick: function(value, state){
                     var position;
                     if(state) {
-                        currentData.devices.push(value);
+                        //currentData.devices.push(value);
+                        currentData.devices = [value];
                     } else {
                         position = currentData.devices.indexOf(value);
                         if(position > -1) {
@@ -89,6 +92,28 @@ tripPlayAddin.optionsToolbar = (function() {
                     applyOptions();
                 }
             });
+        },
+        initHistoryDevicesButton = function(callback) {
+            var container = document.querySelector("#tripPlay_show-history-button"),
+                getState = function(){
+                    return !!container.checked;
+                },
+                setState = function(isOn){
+                    container.checked = (isOn) ? "checked" : "";
+                },
+                onClick = function(){
+                    var state = getState();
+                    callback(state);
+                };
+                container.addEventListener("click", onClick, false);
+            return {
+                getState: getState,
+                setState: setState,
+                onClick: onClick,
+                unload: function(){
+                    container.removeEventListener("click", onClick, false);
+                }
+            };
         },
         setDevices = function(options) {
             var optionsArray = [];
@@ -156,6 +181,7 @@ tripPlayAddin.optionsToolbar = (function() {
              var options = {
                  datePicker: datePicker.getState(serialized),
                  devices: devicesSelect.getSelected() || [],
+                 showHistory: historyDevicesButton.getState() || false,
                  trips: tripsSelect.getSelected() || [],
                  devicesFilter: devicesSelect.getFilter(),
                  tripsFilter: tripsSelect.getFilter()
@@ -170,6 +196,7 @@ tripPlayAddin.optionsToolbar = (function() {
         setSelected = function(options) {
             currentData = {
                 datePicker: options.datePicker || datePicker.getState(true),
+                showHistory: options.showHistory || historyDevicesButton.getState(),
                 devices: options.devices || devicesSelect.getSelected(),
                 trips: options.trips || tripsSelect.getSelected()
             };
@@ -187,11 +214,13 @@ tripPlayAddin.optionsToolbar = (function() {
             currentData = {
                 datePicker: options.datePicker || datePicker.getState(true),
                 devices: options.devices || devicesSelect.getSelected(),
+                showHistory: options.showHistory || historyDevicesButton.getState(),
                 trips: options.trips || tripsSelect.getSelected()
             };
 
             datePicker.setState(options.datePicker, true);
             devicesSelect.setSelected(options.devices || []);
+            historyDevicesButton.setState(options.showHistory || false);
             tripsSelect.setSelected(options.trips || []);
             devicesSelect.setFilter(options.devicesFilter || null);
             tripsSelect.setFilter(options.tripsFilter || null);
@@ -249,6 +278,10 @@ tripPlayAddin.optionsToolbar = (function() {
     return {
         init: function(callback) {
             devicesSelect = initDevicesSelect();
+            historyDevicesButton = initHistoryDevicesButton(function(state){
+                currentData.showHistory = state;
+                applyOptions();
+            });
             tripsSelect = initTripsSelect();
             datePicker = initDatePicker(document.querySelector("#tripPlay_datePicker"));
             applyCallback = callback;
@@ -261,13 +294,17 @@ tripPlayAddin.optionsToolbar = (function() {
         setTrips: setTrips,
         setDefaultData: setDefaultData,
         unload: function(){
-            devicesSelect.setItems([]);
-            devicesSelect.setSelected([]);
-            devicesSelect.close();
-            tripsSelect.setItems([]);
-            tripsSelect.setSelected([]);
-            tripsSelect.disable();
-            tripsSelect.close();
+            //devicesSelect.setItems([]);
+            //devicesSelect.setSelected([]);
+            //devicesSelect.close();
+            devicesSelect.unload();
+            historyDevicesButton.unload();
+            tripsSelect.unload();
+            datePicker.unload();
+            //tripsSelect.setItems([]);
+            //tripsSelect.setSelected([]);
+            //tripsSelect.disable();
+            //tripsSelect.close();
             currentData = {};
         }
     };

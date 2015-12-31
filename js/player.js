@@ -60,11 +60,17 @@ tripPlayAddin.player = (function(){
         points = [],
         tripPath,
         playPaused = false,
+        playTechPaused = false,
         lastPano, firstPano,
         startMarker, finishMarker,
         povMarker,
+        loadPanoCallback,
+        loadPanoId,
+        panoCont,
         waiting = tripPlayAddin.waiting(),
         config = {
+            zoom: 3,
+            preloadImages: false,
             frameDuration: 500,
             mapDim: {
                 width: 300,
@@ -85,21 +91,18 @@ tripPlayAddin.player = (function(){
             sv = new google.maps.StreetViewService();
         },
         initPanorama = function() {
-            var mapCont = document.querySelector("#tripPlay_pano"),
-                mapPreCont = document.createElement("DIV");
-
-            controls = document.querySelector("#tripPlay_controlsWindow");
+            var mapPreCont = document.createElement("DIV");
 
             applyStyles(mapPreCont, {
-                width: mapCont.offsetWidth,
-                height: mapCont.offsetHeight,
+                width: panoCont.offsetWidth,
+                height: panoCont.offsetHeight,
                 visibility: "hidden",
                 top: 0,
                 left: 0
             });
 
             if(!panorama) {
-                panorama = new google.maps.StreetViewPanorama(mapCont);
+                panorama = new google.maps.StreetViewPanorama(panoCont);
             }
             panorama.setOptions({
                 disableDefaultUI: true,
@@ -107,12 +110,18 @@ tripPlayAddin.player = (function(){
             });
 
             panorama.addListener("status_changed", function(){
-                var markerIcon;
+                var markerIcon,
+                    pano = panorama.getPano();
                 if(povMarker && panorama.getStatus() === "OK") {
-                    markerIcon = povMarker.getIcon();
-                    markerIcon.rotation = panorama.getPov().heading;
-                    povMarker.setIcon(markerIcon);
-                    povMarker.setPosition(panorama.getPosition());
+                    if(loadPanoId === panorama.getPano()){ // If panorama hasn't changed yet
+                        markerIcon = povMarker.getIcon();
+                        markerIcon.rotation = panorama.getPov().heading;
+                        povMarker.setIcon(markerIcon);
+                        povMarker.setPosition(panorama.getPosition());
+                    }
+                    if(loadPanoCallback){
+                        loadPanoCallback(pano); // Execute callback from processSVData
+                    }
                 }
             });
 
@@ -120,10 +129,11 @@ tripPlayAddin.player = (function(){
             window.addEventListener("resize", setPanoSize, false);
         },
         setPanoSize = function(){
-            var mapCont = document.querySelector("#tripPlay_pano");
-            mapCont.style.height = document.body.offsetHeight - mapCont.getBoundingClientRect().top + "px";
+            panoCont.style.height = document.body.offsetHeight - panoCont.getBoundingClientRect().top + "px";
         },
         init = function(id, logs) {
+            controls = document.querySelector("#tripPlay_controlsWindow");
+            panoCont = document.querySelector("#tripPlay_pano");
             unload();
             points = logs;
             controlButtons = {
@@ -133,31 +143,82 @@ tripPlayAddin.player = (function(){
                 forward: document.querySelector("#controlNext"),
                 back: document.querySelector("#controlPrev")
             };
-            initControls();
-            initMapWndButtons();
 
             // If google hasn't been init yet
             if(!sv) {
                 return false;
             }
 
+            initControls();
+            initMapWndButtons();
+            initEvents();
             initPanorama();
 
             waiting.start(document.querySelector("#tripPlay_body"));
             initMap(points);
             stop();
-            getSVData(points, points.length - 1, true, function(svData){
+            getSVData(points, points.length - 1, true).then(function(svData){
                 lastPano = svData;
-                getSVData(points, 0, false, function(svData, actualPointIndex){
-                    waiting.stop();
-                    currPoint = actualPointIndex;
-                    firstPano = svData;
-                    showFrame(svData);
-                    applyStyles(document.querySelector("#tripPlay_controlsWindow"), {display: "inline-block"});
-                });
+                return getSVData(points, 0, false);
+            }).then(function(svData){
+                firstPano = svData;
+                waiting.stop();
+                if(!lastPano || !firstPano || lastPano === firstPano) {
+                    panoCont.textContent = "There are no panoramas for this trip";
+                    toggleControls(false);
+                    return false;
+                }
+                currPoint = svData.pointIndex || 0;
+                showFrame(svData);
+                toggleControls(true);
             });
         },
-        getSVData = function(points, pointIndex, isBack, callback){
+        onBlurTab = function(){
+            pause(true);
+        },
+        initEvents = function(){
+            window.removeEventListener("blur", onBlurTab, false);
+            window.addEventListener("blur", onBlurTab, false);
+        },
+        getSVData = function(points, pointIndex, isBack){
+            return new Promise(function(resolve, reject){
+                if(pointIndex >= points.length || pointIndex < 0) {
+                    return resolve();
+                }
+
+                var point = points[pointIndex],
+                    location = {
+                        lat: point.latitude,
+                        lng: point.longitude
+                    },
+                    heading = calculateDirection(points, pointIndex),
+                    pov;
+                if(heading !== false) {
+                    pov = {
+                        heading: heading,
+                        pitch: 0
+                    };
+                }
+                sv.getPanorama({location: location, radius: 50}, function(data, status){
+                    var svData;
+                    if(status === google.maps.StreetViewStatus.OK) {
+                        svData = {
+                            pano: data.location.pano,
+                            position: data.location.latLng,
+                            status: status,
+                            pov: pov,
+                            isBack: isBack
+                        };
+                        svData.pointIndex = pointIndex;
+                        return resolve(svData);
+                    } else {
+                        getSVData(points, (isBack) ? pointIndex - 1 : pointIndex + 1, isBack).then(function(svData){
+                            resolve(svData);
+                        });
+                    }
+                });
+            });
+            /*
             if(pointIndex >= points.length || pointIndex < 0) {
                 callback();
                 return false;
@@ -194,6 +255,7 @@ tripPlayAddin.player = (function(){
                     getSVData(points, (isBack) ? pointIndex - 1 : pointIndex + 1, isBack, callback);
                 }
             });
+            */
         },
         getNextSVData = function(isBack, panoPoint){
             var direction ,
@@ -207,19 +269,30 @@ tripPlayAddin.player = (function(){
             linksData = panorama.getLinks();
             link = getClosestLink(linksData, direction);
 
-            if(link) {
-                return {
-                    pano: link.pano,
-                    status: "OK",
-                    pov: {
-                        heading: (isBack) ? getOppositDirection(link.heading) : link.heading,
-                        pitch: 0
+            return new Promise(function(resolve, reject){
+                if(link) {
+                    return resolve({
+                        pano: link.pano,
+                        status: "OK",
+                        pov: {
+                            heading: (isBack) ? getOppositDirection(link.heading) : link.heading,
+                            pitch: 0
+                        }
+                    });
+                } else {
+                    if(currPoint < points.length && currPoint >= 0) {
+                        currPoint += (isBack) ? -1 : 1;
+                        /*
+                        getSVData(points, currPoint, isBack, function(svData){
+                            return resolve(svData);
+                        });*/
+                        getSVData(points, currPoint, isBack).then(function(svData){
+                            return resolve(svData);
+                        });
                     }
-                };
-            } else {
-                return false;
-            }
-
+                    //return reject();
+                }
+            });
         },
         getClosestLink = function(links, heading) {
             return links.reduce(function(closest, link){
@@ -244,6 +317,11 @@ tripPlayAddin.player = (function(){
             controlButtons.forward.addEventListener("click", fw, false);
             controlButtons.back.addEventListener("click", rw, false);
             document.addEventListener("keyup", processPlayerKey, false);
+        },
+        toggleControls = function(isShow){
+            if(controls) {
+                applyStyles(controls, {display: (isShow) ? "inline-block" : "none"});
+            }
         },
         processPlayerKey = function(e){
             e.preventDefault();
@@ -282,7 +360,8 @@ tripPlayAddin.player = (function(){
                     scale: 0.4,
                     anchor: {x:25, y:0},
                     labelOrigin: {x:25, y:0}
-                };
+                },
+                pauseState = null;
 
             if(panorama && panorama.getStatus() === "OK") {
                 carIcon.rotation = panorama.getPov().heading;
@@ -333,8 +412,8 @@ tripPlayAddin.player = (function(){
                 povMarker = new google.maps.Marker();
                 povMarker.setMap(map);
                 povMarker.addListener("drag", function() {
-                    if(typeof povMarker.pauseState === "undefined" || povMarker.pauseState === null) {
-                        povMarker.pauseState = playPaused;
+                    if(pauseState === null) {
+                        pauseState = playPaused;
                     }
                     pause(true);
                     if(!tripPath) {
@@ -347,11 +426,19 @@ tripPlayAddin.player = (function(){
                 });
 
                 povMarker.addListener("dragend", function() {
-                    getSVData(points, currPoint, false, function(svData, actualPointIndex){
-                        currPoint = actualPointIndex;
-                        processSVData(svData.pano, svData.status, svData.pov, true);
-                        pause(povMarker.pauseState);
-                        povMarker.pauseState = null;
+                    getSVData(points, currPoint, false).then(function(svData){
+                        if(!svData) {
+                            return false;
+                        }
+                        currPoint = svData.pointIndex;
+                        showFrame(svData).then(function(){
+                            prevPanos = [];
+                            currPoint = svData.pointIndex || currPoint;
+                            pause(pauseState);
+                            pauseState = null;
+                        });
+                    }).catch(function() {
+                        povMarker.setPosition(panorama.getPosition());
                     });
                 });
             }
@@ -457,7 +544,9 @@ tripPlayAddin.player = (function(){
                 maxX = points[0].longitude,
                 minY = points[0].latitude,
                 maxY = points[0].latitude,
+                maxZoom = 16,
                 zoomX, zoomY,
+                zoom,
                 mapWnd = document.querySelector("#tripPlay_mapWindow"),
                 mapSize = (hasClass(mapWnd, "tripPlay_big-size")) ? getMapSize(config.mapBigDim) : getMapSize(config.mapDim);
             points.forEach(function(point){
@@ -475,41 +564,48 @@ tripPlayAddin.player = (function(){
                 }
             });
 
-            zoomX = Math.ceil(Math.log(mapSize.width * 360 / Math.abs(minX - maxX) / 256) / Math.LN2);
-            zoomY = Math.ceil(Math.log(mapSize.height * 180 / Math.abs(minY - maxY) / 256) / Math.LN2);
+            zoomX = parseInt(Math.ceil(Math.log(mapSize.width * 360 / Math.abs(minX - maxX) / 256) / Math.LN2));
+            zoomY = parseInt(Math.ceil(Math.log(mapSize.height * 180 / Math.abs(minY - maxY) / 256) / Math.LN2));
+            zoom = Math.min(zoomX, zoomY) - 1;
             return {
                 center: {
                     lat: minY + Math.abs(maxY - minY) / 2,
                     lng: minX + Math.abs(maxX - minX) / 2
                 },
-                zoom: Math.min(zoomX, zoomY) - 1
+                zoom: Math.min(maxZoom, isNaN(zoom) ? maxZoom : zoom)
             };
         },
         play = function() {
-            if(checkIsClosePano(lastPano)) {
+            var stopPlaying = function(){
+                    playing = window.clearInterval(playing);
+                    applyStyles(controlButtons.play, {display: "inline-block"});
+                    applyStyles(controlButtons.pause, {display: "none"});
+                };
+            /*
+            if(checkIsClosePano(lastPano) && !) {
                 stop();
-            }
+            }*/
             applyStyles(controlButtons.play, {display: "none"});
             applyStyles(controlButtons.pause, {display: "inline-block"});
             pause(false);
 
             playing = window.setInterval(function(){
-                var nextSVData;
-                if(!playPaused) {
-                    nextSVData = getNextSVData();
-                    if(!nextSVData || checkIsClosePano(lastPano)) {
-                        playing = window.clearInterval(playing);
-                        applyStyles(controlButtons.play, {display: "inline-block"});
-                        applyStyles(controlButtons.pause, {display: "none"});
-                        return false;
-                    }
-                    showFrame(nextSVData);
+                if(!playPaused && !playTechPaused) {
+                    getNextSVData().then(function(nextSVData){
+                        if(!nextSVData || (checkIsClosePano(lastPano) && !checkIsClosePano(firstPano))) {
+                            stopPlaying();
+                            return false;
+                        }
+                        showFrame(nextSVData);
+                    }).catch(function(){
+                        stopPlaying();
+                    });
                 }
             }, config.frameDuration);
         },
         showFrame = function(svData, isBack) {
             if(!svData) {
-                return false;
+                return processSVData();
             }
             var pano = svData.pano,
                 status = svData.status,
@@ -522,21 +618,22 @@ tripPlayAddin.player = (function(){
                 nextPoint = getNextLogIndex(points, currPoint, (isBack) ? currPoint - 1 : currPoint + 1, panoPoint);
             if(prevPanos[0] && prevPanos[1] && prevPanos[0].pano === pano && prevPanos[0].isBack === isBack &&
                 prevPanos[1].isBack === isBack) {
-                getSVData(points, nextPoint, isBack, function(svData){
+                getSVData(points, nextPoint, isBack).then(function(svData){
                     currPoint = nextPoint;
                     showFrame(svData, isBack);
                 });
-                return false;
+                return processSVData();
             }
+
             prevPanos[0] = prevPanos[1];
             prevPanos[1] = {
                 pano: pano,
                 isBack: isBack
             };
-            processSVData(pano, status, pov, true);
+            return processSVData(pano, status, pov, true);
         },
         pause = function(state) {
-            playPaused = (typeof state === "boolean") ? state : !playPaused;
+            playTechPaused = playPaused = (typeof state === "boolean") ? state : !playPaused;
             controlButtons.pause.innerText = (playPaused) ? "Play" : "Pause";
         },
         stop = function() {
@@ -544,9 +641,13 @@ tripPlayAddin.player = (function(){
             prevPanos = [];
             applyStyles(controlButtons.play, {display: "inline-block"});
             applyStyles(controlButtons.pause, {display: "none"});
-            getSVData(points, 0, false, function(svData) {
+            getSVData(points, 0, false).then(function(svData) {
                 showFrame(svData);
             });
+            /*
+            getSVData(points, 0, false, function(svData) {
+                showFrame(svData);
+            });*/
             if(playing) {
                 playing = window.clearInterval(playing);
             }
@@ -554,28 +655,53 @@ tripPlayAddin.player = (function(){
         fw = function() {
             if(!checkIsClosePano(lastPano)) {
                 pause(true);
-                showFrame(getNextSVData());
+                getNextSVData().then(showFrame).catch();
             }
         },
         rw = function() {
             if(!checkIsClosePano(firstPano)) {
                 pause(true);
-                showFrame(getNextSVData(true), true);
+                getNextSVData(true).then(function(svData){
+                    showFrame(svData, true);
+                }).catch();
             }
         },
         processSVData = function(pano, status, pov, visible) {
-            if (status === google.maps.StreetViewStatus.OK) {
-                panorama.setOptions({
-                    pano: pano,
-                    pov: pov,
-                    visible: visible
-                });
-                if(!pov) {
-                    panorama.setPov(panorama.getPhotographerPov());
+            return new Promise(function(resolve, reject){
+                if(!pano) {
+                    return resolve();
                 }
-            } else {
-                console.error("Street View data not found for this location.");
-            }
+                var prevPauseState = playTechPaused;
+                loadPanoCallback = function(loadedPano){
+                    if(pano === loadedPano) {
+                        playTechPaused = prevPauseState;
+                        resolve();
+                        loadPanoCallback = null;
+                    }
+                };
+                loadPanoId = pano;
+                if (status === google.maps.StreetViewStatus.OK) {
+                    if(!pov) {
+                        pov = panorama.getPhotographerPov();
+                    }
+                    playTechPaused = true;
+                    loadPanoramaImages(pano, pov).then(function() {
+                        if(pano === panorama.getPano()) {
+                            playTechPaused = prevPauseState;
+                            loadPanoCallback = null;
+                            return resolve();
+                        }
+                        panorama.setOptions({
+                            pano: pano,
+                            pov: pov,
+                            visible: visible
+                        });
+                    });
+                } else {
+                    console.error("Street View data not found for this location.");
+                    return reject();
+                }
+            });
         },
         calculateDirection = function(logs, logIndex, panoPoint, isBack) {
             var log = panoPoint || logs[logIndex],
@@ -636,12 +762,104 @@ tripPlayAddin.player = (function(){
                 targetPanoPoint = targetPano.position;
             return (google.maps.geometry.spherical.computeDistanceBetween(panoPoint, targetPanoPoint) < 10);
         },
+        loadPanoramaImages = function (panoId, pov) {
+            var getSuitableImages = function(w, h, pov) {
+                var panoZoom = panorama.getZoom(),
+                    wTileDegrees = 360 / w,
+                    hTileDegrees = 180 / h,
+                    fov = 90,
+                    i, j,
+                    wHeading1 = pov.heading - fov / 2 - 180,
+                    wHeading2 = pov.heading + fov / 2 - 180,
+                    tilesFrom, tilesTo,
+                    wtiles = [],
+                    addTiles = function(from, to) {
+                        var i;
+                        for(i = from ; i <= to; i++) {
+                            if(wtiles.indexOf(i) === -1) {
+                                wtiles.push(i);
+                            }
+                        }
+                    };
+
+                if(wHeading1 < 0) {
+                    wHeading1 = 360 - wHeading1;
+                } else if(wHeading1 > 180) {
+                    wHeading1 = wHeading1 - 180;
+                }
+                if(wHeading2 < 0) {
+                    wHeading2 = 360 - wHeading2;
+                } else if(wHeading2 > 180) {
+                    wHeading2 = wHeading2 - 180;
+                }
+
+                if(wHeading1 < wHeading2){
+                    tilesFrom = Math.abs(Math.floor(wHeading1 / wTileDegrees));
+                    tilesTo = Math.abs(Math.ceil(wHeading2 / wTileDegrees));
+                    addTiles(tilesFrom, tilesTo);
+                } else {
+                    tilesFrom = Math.abs(Math.floor(wHeading1 / wTileDegrees));
+                    tilesTo = w - 1;
+                    addTiles(tilesFrom, tilesTo);
+                    tilesFrom = 0;
+                    tilesTo = Math.abs(Math.ceil(wHeading2 / wTileDegrees));
+                    addTiles(tilesFrom, tilesTo);
+                }
+
+                return wtiles;
+            };
+
+            return new Promise(function(resolve){
+                if(!config.preloadImages) {
+                    return resolve();
+                }
+
+                var zoom = config.zoom,
+                    w = (zoom === 3) ? 7 : Math.pow(2, zoom),
+                    h = Math.pow(2, zoom - 1),
+                    url,
+                    subdomain,
+                    x,
+                    y,
+                    loadEventListener,
+                    errorEventListener,
+                    loadedImages = 0,
+                    //suitableImages = getSuitableImages(w, h, pov),
+                    onImageLoaded = function(){
+                        loadedImages ++;
+                        //if (loadedImages === suitableImages.length * h) {
+                        if (loadedImages === w * h) {
+                            resolve();
+                        }
+                    };
+
+                for (y = 0; y < h; y++) {
+                    for (x = 0; x < w; x++) {
+                        //if(suitableImages.indexOf(x) > -1) {
+                        subdomain = (x % 2) ? "cbks1" : "cbks0";
+                        url = "https://" + subdomain + ".googleapis.com/cbk?output=tile&cb_client=apiv3&v=4&gl=US&zoom=" + zoom + "&x=" + x + "&y=" + y + "&panoid=" + panoId + "&fover=2&onerr=3";
+                        var img = new Image();
+                        loadEventListener = img.addEventListener("load", onImageLoaded);
+                        errorEventListener = img.addEventListener("error", onImageLoaded);
+                        img.crossOrigin = '';
+                        img.src = url;
+                        //}
+                    }
+                }
+            });
+        },
         unload = function() {
             waiting.stop();
             currPoint = 0;
             prevPanos = [];
+            loadPanoCallback = null;
 
-            applyStyles(document.querySelector("#tripPlay_controlsWindow"), {display: "none"});
+            if(panoCont) {
+                panoCont.textContent = "";
+            }
+
+            toggleControls(false);
+
             if(panorama) {
                 google.maps.event.clearListeners(panorama, "status_changed");
                 panorama.setVisible(false);
