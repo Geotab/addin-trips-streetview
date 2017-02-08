@@ -199,7 +199,7 @@ tripPlayAddin.player = (function(){
                         pitch: 0
                     };
                 }
-                sv.getPanorama({location: location, radius: 50}, function(data, status){
+                sv.getPanorama({location: location, radius: 50, source: "outdoor"}, function(data, status){
                     var svData;
                     if(status === google.maps.StreetViewStatus.OK) {
                         svData = {
@@ -218,44 +218,6 @@ tripPlayAddin.player = (function(){
                     }
                 });
             });
-            /*
-            if(pointIndex >= points.length || pointIndex < 0) {
-                callback();
-                return false;
-            }
-
-            var point = points[pointIndex],
-                location = {
-                    lat: point.latitude,
-                    lng: point.longitude
-                },
-                heading = calculateDirection(points, pointIndex),
-                pov;
-            if(heading !== false) {
-                pov = {
-                    heading: heading,
-                    pitch: 0
-                };
-            }
-            sv.getPanorama({location: location, radius: 50}, function(data, status){
-                var svData;
-                if(status === google.maps.StreetViewStatus.OK) {
-                    svData = {
-                        pano: data.location.pano,
-                        position: data.location.latLng,
-                        status: status,
-                        pov: pov,
-                        isBack: isBack
-                    };
-                    if(callback) {
-                        callback(svData, pointIndex);
-                        return false;
-                    }
-                } else {
-                    getSVData(points, (isBack) ? pointIndex - 1 : pointIndex + 1, isBack, callback);
-                }
-            });
-            */
         },
         getNextSVData = function(isBack, panoPoint){
             var direction ,
@@ -282,15 +244,10 @@ tripPlayAddin.player = (function(){
                 } else {
                     if(currPoint < points.length && currPoint >= 0) {
                         currPoint += (isBack) ? -1 : 1;
-                        /*
-                        getSVData(points, currPoint, isBack, function(svData){
-                            return resolve(svData);
-                        });*/
                         getSVData(points, currPoint, isBack).then(function(svData){
                             return resolve(svData);
                         });
                     }
-                    //return reject();
                 }
             });
         },
@@ -597,7 +554,7 @@ tripPlayAddin.player = (function(){
                             return false;
                         }
                         showFrame(nextSVData);
-                    }).catch(function(){
+                    }).catch(function(error){
                         stopPlaying();
                     });
                 }

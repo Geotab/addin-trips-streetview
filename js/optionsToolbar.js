@@ -145,7 +145,6 @@ tripPlayAddin.optionsToolbar = (function() {
         },
         setTrips = function(options) {
             var optionsArray = [];
-            //tripsSelect[Object.keys(options).length ? "enable" : "disable"]();
             if(!Object.keys(options).length) {
                 tripsSelect.setSelected([]);
                 tripsSelect.disable();
@@ -161,7 +160,13 @@ tripPlayAddin.optionsToolbar = (function() {
                     selected: checkTripSelected(tripId)
                 });
             });
-            tripsSelect.setItems(optionsArray);
+            tripsSelect.setItems(optionsArray.sort(function (a, b) {
+                var tripA = options[a.value],
+                    tripB = options[b.value],
+                    tripAStart = tripA && tripA.start && new Date(tripA.start),
+                    tripBStart = tripB && tripB.start && new Date(tripB.start);
+                return tripAStart > tripBStart ? 1 : -1;    
+            }));
             currentData.trips = tripsSelect.getSelected();
 
             if(currentData.trips && !currentData.trips.length) {
