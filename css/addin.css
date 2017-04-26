@@ -407,6 +407,7 @@ div.pq-select-button {
     font-size: 14px;
     height: auto;
     line-height: 18px;
+    box-sizing: border-box;
 }
 .daterangepicker .calendar-table table {
     font-size: 12px;
