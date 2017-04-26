@@ -6,17 +6,20 @@ tripPlayAddin.datePicker = function() {
     var container,
         init = function(cont, callback) {
             var options = {
-                    presetRanges: [
-                        {text: 'Today', dateStart: function() { return moment(); }, dateEnd: function() { return moment(); } },
-                        {text: 'Yesterday', dateStart: function() { return moment().subtract('days', 1); }, dateEnd: function() { return moment().subtract('days', 1); } },
-                        {text: 'Last 7 Days', dateStart: function() { return moment().subtract('days', 6); }, dateEnd: function() { return moment(); } },
-                        {text: 'Last Week (Mo-Su)', dateStart: function() { return moment().subtract('days', 7).isoWeekday(1); }, dateEnd: function() { return moment().subtract('days', 7).isoWeekday(7); } },
-                        {text: 'Month to Date', dateStart: function() { return moment().startOf('month'); }, dateEnd: function() { return moment(); } },
-                        {text: 'Previous Month', dateStart: function() { return moment().subtract('month', 1).startOf('month'); }, dateEnd: function() { return moment().subtract('month', 1).endOf('month'); } }
-                    ],
-                    datepickerOptions: {
-                        numberOfMonths: 1
-                    }
+                    ranges: {
+                        "Today": [moment().startOf("day"), moment().endOf("day")],
+                        "Yesterday": [moment().subtract('days', 1).startOf("day"), moment().subtract('days', 1).endOf("day")],
+                        "Last 7 Days": [moment().subtract('days', 6).startOf("day"), moment().endOf("day")],
+                        "Last Week (Mo-Su)": [moment().subtract('days', 7).isoWeekday(1).startOf("day"), moment().subtract('days', 7).isoWeekday(7).endOf("day")],
+                        "Current Month": [moment().startOf('month').startOf("day"), moment().endOf("day")],
+                        "Previous Month": [moment().subtract('month', 1).startOf('month').startOf("day"), moment().subtract('month', 1).endOf('month').endOf("day")],
+                    },
+                    timePicker: true,
+                    showCustomRangeLabel: true,
+                    alwaysShowCalendars: true,
+                    autoApply: false,
+                    buttonClasses: "geotabButton",
+                    applyClass: "positiveButton"
                 },
                 initState = {
                     start: moment(new Date()).startOf("day").toDate(),
@@ -24,10 +27,14 @@ tripPlayAddin.datePicker = function() {
                 };
             container = cont;
             jQuery(cont).daterangepicker(options);
-            jQuery(cont).daterangepicker("setRange", initState);
-            jQuery(cont).daterangepicker({onChange: function(){
-                callback(jQuery(cont).daterangepicker("getRange"));
-            }});
+            jQuery(cont).data("daterangepicker").setStartDate(initState.start);
+            jQuery(cont).data("daterangepicker").setEndDate(initState.end);
+            jQuery(cont).on("apply.daterangepicker", function(ev, picker) {
+                callback({
+                    start: picker.startDate,
+                    end: picker.endDate
+                });
+            });
         };
     return {
         init: init,
@@ -41,13 +48,14 @@ tripPlayAddin.datePicker = function() {
                     end: (state.end) ? new Date(state.end) : new Date()
                 };
             }
-            jQuery(container).daterangepicker("setRange", state);
+            jQuery(container).data("daterangepicker").setStartDate(state.start);
+            jQuery(container).data("daterangepicker").setEndDate(state.end);
         },
         getState: function(serialized){
-            var value = jQuery(container).daterangepicker("getRange"),
+            var value = jQuery(container).data("daterangepicker"),
                 res = {
-                    start: moment(value.start).startOf("day").toDate(),
-                    end: moment(value.end).endOf("day").toDate()
+                    start: moment(value.startDate).toDate(),
+                    end: moment(value.endDate).toDate()
                 };
             return {
                 start: (serialized) ? res.start.toISOString() : res.start,
@@ -55,7 +63,7 @@ tripPlayAddin.datePicker = function() {
             };
         },
         unload: function(){
-            jQuery(container).daterangepicker("destroy");
+            //jQuery(container).daterangepicker("destroy");
         }
     };
 };

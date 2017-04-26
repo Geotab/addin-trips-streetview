@@ -371,22 +371,85 @@ div.pq-select-button {
 .tripPlay_date-picker {
     font-size: 14px;
 }
-.comiseo-daterangepicker-presets, .comiseo-daterangepicker-calendar {
-    height: 210px;
+
+/* Date Range Picker */
+#tripPlay_datePicker {
+    font-size: 14px;
+    line-height: 18px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
 }
-.comiseo-daterangepicker-triggerbutton.ui-button {
-    min-width: 280px;
-}
-.comiseo-daterangepicker-calendar > .ui-datepicker-inline {
-    width: 210px;
-}
-.comiseo-daterangepicker-calendar .ui-datepicker-title {
-    font-size: 1em;
-    font-weight: normal;
-}
-.comiseo-daterangepicker-buttonpanel button:nth-child(2) {
+.daterangepicker.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 9000;
     display: none;
+    float: left;
+    min-width: 160px;
+    padding: 5px 0;
+    margin: 2px 0 0;
+    font-size: 14px;
+    text-align: left;
+    list-style: none;
+    background-color: #fff;
+    -webkit-background-clip: padding-box;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 4px;
+    -webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .175);
 }
-.comiseo-daterangepicker-presets li a {
+.daterangepicker .input-mini {
+    padding: 2px 6px;
+    font-size: 14px;
+    height: auto;
+    line-height: 18px;
+}
+.daterangepicker .calendar-table table {
+    font-size: 12px;
+}
+.daterangepicker .calendar-table table th,
+.daterangepicker .calendar-table table td {
+    min-width: 22px;
+}
+.daterangepicker .ranges li {
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid #c5dbec;
+    background-color: #e8f3fd;
+    color: #25477b;
     text-decoration: none;
+    line-height: 18px;
+    position: relative;
+    padding: 4px 8px;
+    box-sizing: border-box;
+}
+.daterangepicker .ranges li.active,
+.daterangepicker .ranges li:active {
+    color: #fff;
+    border-color: #2c7ab1;
+    background-color: #2c7ab1;
+    -webkit-tap-highlight-color: transparent;
+}
+.daterangepicker .ranges li:hover {
+    border-color: #5293c6;
+    background-color: #d1e7fb;
+    color: #25477b;
+}
+.daterangepicker .calendar-time {
+    padding: 0;
+    margin: 0 auto;
+}
+.daterangepicker .next.available:after {
+    content: ">";
+}
+.daterangepicker .prev.available:after {
+    content: "<";
 }
