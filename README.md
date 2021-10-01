@@ -12,12 +12,12 @@ Add the configuation below to the to the system setting -> addins section of the
     "name": "Trips Street View (by Geotab)",
     "items": [
         {
-            "icon": "https://cdn.rawgit.com/Geotab/addin-trips-streetview/master/images/icon.svg",
+            "icon": "https://cdn.jsdelivr.net/gh/Geotab/addin-trips-streetview/images/icon.svg",
             "path": "ActivityLink/",
             "menuName": {
                 "en": "Trips Street View"
             },
-            "url": "https://cdn.rawgit.com/Geotab/addin-trips-streetview/master/tripsStreetView.html"
+            "url": "https://cdn.jsdelivr.net/gh/Geotab/addin-trips-streetview/tripsStreetView.html"
         }
     ],
     "version": "1.0",
