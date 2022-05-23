@@ -6,21 +6,19 @@ An addin that allows choosing a trip and then plays that trip back through stree
 Add the configuation below to the to the system setting -> addins section of the MyGeotab database
 ```
 {
-    "supportEmail": "support@example.com",
+    "supportEmail": "integrations@geotab.com",
     "isSigned": false,
-    "signature": "12345-MYSIGNATURE",
     "name": "Trips Street View (by Geotab)",
     "items": [
         {
             "icon": "https://cdn.jsdelivr.net/gh/Geotab/addin-trips-streetview/images/icon.svg",
-            "path": "ActivityLink/",
+            "path": "MapLink/",
             "menuName": {
                 "en": "Trips Street View"
             },
             "url": "https://cdn.jsdelivr.net/gh/Geotab/addin-trips-streetview/tripsStreetView.html"
         }
     ],
-    "version": "1.0",
-    "key": "12345-MYAPIKEY"
+    "version": "1.0.1"
 }
 ```
