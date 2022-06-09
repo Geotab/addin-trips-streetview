@@ -1,10 +1,10 @@
 {
     "name": "Trips Street View",
-    "supportEmail": "support@geotab.com",
-    "version": "1.0",
+    "supportEmail": "integrations@geotab.com",
+    "version": "1.0.1",
     "items": [
         {
-            "path": "ActivityLink/",
+            "path": "MapLink/",
             "menuName": {
                 "en": "Trips Street View"
             },
